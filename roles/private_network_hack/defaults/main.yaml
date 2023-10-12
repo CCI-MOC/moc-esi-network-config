@@ -1,0 +1,3 @@
+default_network_mtu: 1500
+default_network_bridge: br-ex
+

@@ -1,0 +1,55 @@
+- name: "Look up project and network information"
+  hosts: localhost
+  tags: [gather]
+  gather_facts: false
+  collections:
+    - openstack.cloud
+  tasks:
+    - name: "Get project information"
+      project_info:
+        name: "{{ item.project }}"
+      register: projects
+      loop: "{{ project_networks }}"
+      loop_control:
+        label: "{{ item.project }}:{{ item.network }}"
+
+    - name: "Get network information"
+      networks_info:
+        name: "{{ item.item.network }}"
+      loop: "{{ projects.results }}"
+      register: networks
+      loop_control:
+        label: "{{ item.item.project }}:{{ item.item.network }}"
+
+    - name: "Get subnet information"
+      subnets_info:
+        filters:
+          network_id: "{{ item.networks[0].id }}"
+      loop: "{{ networks.results }}"
+      register: subnets
+      loop_control:
+        label: "{{ item.item.item.project }}:{{ item.item.item.network }}"
+
+- name: "Generate interface configuration"
+  hosts: controllers
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Get controller number
+      set_fact:
+        controller_num: >-
+          {{ inventory_hostname | regex_replace(".*(\d+)$", "\1") | int }}
+
+    - name: Install custom network configuration
+      loop: "{{ hostvars['localhost'].subnets.results }}"
+      loop_control:
+        label: "{{ netspec.project }}:{{ netspec.network }}"
+      vars:
+        netspec: "{{ item.item.item.item }}"
+        project: "{{ item.item.item.projects[0] }}"
+        network: "{{ item.item.networks[0] }}"
+        subnet: "{{ item.subnets[0] }}"
+        interfaceName: "{{ netspec.interfaceName | default('pj%s' % network.id.replace('-', '')[:13]) }}"
+        interfaceAddress: "{{ subnet.cidr | ansible.utils.nthhost((-1 * controller_num|int)-3) }}"
+      include_role:
+        name: private_network_hack

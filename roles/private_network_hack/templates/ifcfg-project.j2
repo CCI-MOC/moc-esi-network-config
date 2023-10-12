@@ -1,0 +1,17 @@
+# DO NOT EDIT: This file is managed by Ansible
+# project: {{ netspec.project }} ({{ project.id }})
+# network: {{ netspec.network }} ({{ network.id }})
+# subnet: {{ subnet.name }} ({{ subnet.id }})
+DEVICE={{ interfaceName }}
+ONBOOT=yes
+HOTPLUG=no
+NM_CONTROLLED=no
+PEERDNS=no
+DEVICETYPE=ovs
+TYPE=OVSIntPort
+OVS_BRIDGE={{ netspec.bridge | default(default_network_bridge) }}
+OVS_OPTIONS="tag={{ network.provider_segmentation_id }}"
+BOOTPROTO=none
+MTU={{ netspec.mtu | default(default_network_mtu) }}
+IPADDR={{ interfaceAddress }}
+PREFIX={{ subnet.cidr | ansible.utils.ipaddr('prefix') }}

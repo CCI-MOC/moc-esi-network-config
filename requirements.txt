@@ -1,0 +1,4 @@
+ansible
+python-openstackclient
+python-openstacksdk
+netaddr

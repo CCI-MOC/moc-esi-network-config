@@ -1,0 +1,5 @@
+project_networks:
+- project: larsks
+  network: openshift
+- project: tzumainn
+  network: tzumainn

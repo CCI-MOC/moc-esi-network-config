@@ -1,0 +1,11 @@
+- name: "({{ netspec.project }}:{{ netspec.network }}) Install custom network configuration"
+  tags: [template-interface]
+  template:
+    src: "ifcfg-project.j2"
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ netspec.project }}-{{ netspec.network }}"
+
+- name: "({{ netspec.project }}:{{ netspec.network }}) Refresh interface configuration"
+  tags: [refresh-interface]
+  shell: |
+    ifdown {{ interfaceName }}
+    ifup {{ interfaceName }}
